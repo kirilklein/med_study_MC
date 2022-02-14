@@ -126,6 +126,7 @@ def crude_estimation_OR(df, RR=False):
         return d1e1/d1e0
     else:
         return d0e0*d1e1/(d1e0*d0e1)
+        
 def crude_estimation_exp1dis1(df):
     return df[df.exposed==1].disease_proba.mean()*(df.exposed==1).sum()
 def crude_estimation_exp0dis1(df):

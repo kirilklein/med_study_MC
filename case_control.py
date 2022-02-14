@@ -6,9 +6,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from utilities import matching as mt
-from stats_tools import vis
-from stats_tools.vis import quickplot
+from util import matching as mt
+from util import vis
+from util.vis import quickplot
 import importlib
 from numpy.random import default_rng
 from scipy.stats import norm
@@ -38,7 +38,7 @@ quickplot(df.x0, y=df.exposed, xlabel='x0', ylabel='exposed')
 print('Number exposed', df.exposed.sum())
 quickplot(df.x0, xlabel='x0', ylabel='Count')
 #%%
-# test
+# Test
 #gamma_loc = list(get_rand_uniform(num_variables,2)*0.0001-2)
 #gamma_loc.insert(0, gamma1)
 #gamma_loc.insert(0, gamma0)
@@ -47,15 +47,15 @@ quickplot(df.x0, xlabel='x0', ylabel='Count')
 #            random_state=random_state+1)    
 
 gamma = mt.get_gamma(gamma0=-4.5, true_OR=true_OR, gamma_ls=[.01])
-
 df = mt.compute_disease_proba(df, gamma)
 sns.kdeplot(data=df, x='disease_proba', hue='exposed')
 
-print("exposed and sick: ", mt.crude_estimation_dis1(df))
-print("not exposed and sick: ", mt.crude_estimation_dis0(df))
+print("exposed and sick: ", mt.crude_estimation_exp1dis1(df))
+print("not exposed and sick: ", mt.crude_estimation_exp0dis1(df))
 print("estimation of OR:" , mt.crude_estimation_OR(df))
 #%%
-def simulate_disease(df, random_state=0):
+# Simulate disease
+def simulate_disease(df, gamma, random_state=0):
     df = mt.compute_disease_proba(df, gamma)
     if type(random_state)==int:
         rng = np.random.RandomState(random_state+2)
@@ -63,7 +63,8 @@ def simulate_disease(df, random_state=0):
         rng = np.random
     df['disease'] = rng.rand(len(df))<df.disease_proba
     return df
-dfd = simulate_disease(df)
+gamma = mt.get_gamma(gamma0=-4.5, true_OR=true_OR, gamma_ls=[.01])
+dfd = simulate_disease(df, gamma)
 ctd = mt.get_contingency_table(dfd)
 mt.plot_heatmap(ctd)
 OR_all, CI_all, pval_all = mt.compute_OR_CI_pval(
@@ -73,6 +74,21 @@ print(logOR_all, logORSE_all)
 #%%
 mt.plot_variables_kde(dfd)
 mt.plot_variables_kde(dfd, hue='disease')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #%%
 # Select random subset
 

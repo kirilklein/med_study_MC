@@ -8,13 +8,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mlxtend.plotting import plot_decision_regions
 from scipy import stats
-from . import fits
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib import ticker
 import seaborn as sns
-from stats_tools.colors import Color_palette
+from util.colors import Color_palette
 
 
 def quickplot(x, kind='scatter', y=None, 
@@ -31,8 +30,8 @@ def quickplot(x, kind='scatter', y=None,
             return 1
     else:
         ax.hist(x)
-    ax.set_xlabel(xlabel, fontsize=18)
-    ax.set_ylabel(ylabel, fontsize=18)
+    ax.set_xlabel(xlabel, fontsize=16)
+    ax.set_ylabel(ylabel, fontsize=16)
     ax.set_title(title, fontsize=22)
     fig. tight_layout()
 
