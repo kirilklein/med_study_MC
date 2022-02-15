@@ -87,6 +87,20 @@ def get_positives_and_random_subset(df, n_subset, random_state=0):
     df_subs = pd.concat([dfd, df_rand], ignore_index=True)
     return df_subs
 
+def add_subset_col(df, n_subset, random_state=0):
+    """Selects all the sick and a random subset of size n_subset of the rest of the population"""
+    df['subset'] = 0
+    df.loc[df.disease==1, 'subset'] = 1
+    ndis_indices = df.index[df.disease==0].tolist()
+    if type(random_state)==int:
+        rng = default_rng(random_state)
+        rng.shuffle(ndis_indices)
+    else:
+        np.random.shuffle(ndis_indices)
+    subset_inds = ndis_indices[:n_subset]
+    df.loc[subset_inds, 'subset'] = 1
+    return df
+
 
 def get_positives_and_random_subset(df, n_subset, random_state=0):
     """Selects all the sick and a random subset of size n_subset of the rest of the population"""
