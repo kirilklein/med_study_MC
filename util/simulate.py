@@ -62,27 +62,15 @@ def get_gamma(gamma0, true_OR, gamma_ls):
     return gamma
 
 
-def simulate_disease(df, odds_exp, OR, random_state=0):
-    """
-    Parameters:
-        df: Df with exposed column (0 or 1)
-        odds_exp: odds of getting the disease when being exposed
-        OR: odds ratio
-    returns: Dataframe with disease column (0 or 1)"""
-    df_exp = df[df.exposed==1]
-    df_nexp = df[df.exposed==0]
-    
+def simulate_disease(df, gamma, random_state=0):
+    df = mt.compute_disease_proba(df, gamma)
     if type(random_state)==int:
-        rng1 = np.random.RandomState(random_state+2)
-        rng2 = np.random.RandomState(random_state+3)
+        rng = np.random.RandomState(random_state+2)
     else:
-        rng1 = np.random
-        rng2 = np.random
-    df_exp['disease'] = rng1.rand(len(df_exp))<odds_exp
-    df_nexp['disease'] = rng2.rand(len(df_nexp))<odds_exp/OR
-    df = pd.concat([df_exp, df_nexp], ignore_index=True)
-    df['disease'] = df['disease']*1
+        rng = np.random
+    df['disease'] = rng.rand(len(df))<df.disease_proba
     return df
+
 
 def get_positives_and_random_subset(df, n_subset, random_state=0):
     """Selects all the sick and a random subset of size n_subset of the rest of the population"""

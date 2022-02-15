@@ -7,7 +7,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from util import matching as mt
-from util import vis
+from util import vis, stats
+from util import simulate as sim
 from util.vis import quickplot
 import importlib
 from numpy.random import default_rng
@@ -55,21 +56,14 @@ print("not exposed and sick: ", mt.crude_estimation_exp0dis1(df))
 print("estimation of OR:" , mt.crude_estimation_OR(df))
 #%%
 # Simulate disease
-def simulate_disease(df, gamma, random_state=0):
-    df = mt.compute_disease_proba(df, gamma)
-    if type(random_state)==int:
-        rng = np.random.RandomState(random_state+2)
-    else:
-        rng = np.random
-    df['disease'] = rng.rand(len(df))<df.disease_proba
-    return df
-gamma = mt.get_gamma(gamma0=-4.5, true_OR=true_OR, gamma_ls=[.01])
-dfd = simulate_disease(df, gamma)
-ctd = mt.get_contingency_table(dfd)
-mt.plot_heatmap(ctd)
-OR_all, CI_all, pval_all = mt.compute_OR_CI_pval(
+
+gamma = sim.get_gamma(gamma0=-4.5, true_OR=true_OR, gamma_ls=[.01])
+dfd = sim.simulate_disease(df, gamma)
+ctd = stats.get_contingency_table(dfd)
+vis.plot_heatmap(ctd)
+OR_all, CI_all, pval_all = stats.compute_OR_CI_pval(
     dfd, print_=True, start_string='Estimated from whole population')
-logOR_all, logORSE_all = mt.compute_logOR_SE(dfd)
+logOR_all, logORSE_all = stats.compute_logOR_SE(dfd)
 print(logOR_all, logORSE_all)
 #%%
 mt.plot_variables_kde(dfd)
@@ -84,12 +78,7 @@ def simulate_exposure_disease():
          population_size, random_state=None)
     gamma = mt.get_gamma(gamma0=-4.5, true_OR=true_OR, gamma_ls=[.01])
     df = mt.compute_disease_proba(df, gamma)
-    
-
-
-
-
-
+    ####continue here
 
 
 
@@ -122,21 +111,9 @@ df_subs = mt.run_logistic_regression(df_subs)
 sns.histplot(data=df_subs, x='PS', bins=50, hue='exposed')
 df.head()
 #%%
-from sklearn.neighbors import NearestNeighbors
-def NN_mt(df):
-    df_cases = df[df.disease==1]
-    PS_cases = df_cases.PS.to_numpy()
-    df_controls = df[df.disease==0]
-    PS_controls = df_controls.PS.to_numpy()
-    neigh = NearestNeighbors(n_neighbors=10)
-    neigh.fit(PS_controls.reshape(-1,1))
-    distances, indices = neigh.kneighbors(PS_cases.reshape(-1,1))
-    indices = indices.flatten()
-    df_matched_controls = df_controls.iloc[indices, :]
-    df = pd.concat([df_cases, df_matched_controls], ignore_index=True)
-    return df
 
-df_subs_m = NN_mt(
+
+df_subs_m = mt.NN_matching(
     df_subs)
 OR_nm, CI_nm, pval_nm = mt.compute_OR_CI_pval(df_subs_m, print_=True, 
     start_string='No mt')
@@ -144,6 +121,3 @@ ct = mt.get_contingency_table(df_subs_m)
 mt.plot_heatmap(ct)
 #e_PS_matched_controls = e_PS_controls[indices.flatten()]
 #x_matched_controls = x_controls[indices.flatten()]
-#%%
-#
-np.log(20)
