@@ -9,6 +9,22 @@ import pandas as pd
 import os
 from os.path import split, join
 import multiprocessing as mp
+import time
+
+
+
+def timing(func):
+    def function_wrapper(*x):
+        start = time.time()
+        func(*x)
+        stop = time.time()-start
+        if stop>60 and stop<3600:
+            print(f'{(time.time()-start)/60:.2f}', 'min')
+        elif stop>3600:
+            print(f'{(time.time()-start)/3600:.2f}', 'h')
+        else:
+            print(f'{time.time()-start:.2f}', 's')
+    return function_wrapper
 
 def get_dir(file):
     return split(file)[0]

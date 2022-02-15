@@ -5,6 +5,7 @@ from scipy.stats import fisher_exact
 from sklearn.linear_model import LogisticRegression
 ####################evaluation##############################
 
+
 def compute_bias(estimated_OR, true_OR):
     """estimate bias as in https://academic.oup.com/aje/article/158/3/280/70529"""
     return ((estimated_OR/true_OR)-1)*100
@@ -65,13 +66,17 @@ def compute_OR_CI_pval(df, print_=False, start_string=''):
             f'({CI[0]:.2f},{CI[1]:.2f})', '\n    p =', p_val)
     return OR, CI, p_val
 
-def z_test(df1, df2):
-    logOR1, logOR_SE1 = compute_logOR_SE(df1)
-    logOR2, logOR_SE2 = compute_logOR_SE(df2)
-    return np.abs(logOR1-logOR2)/np.sqrt(logOR_SE1**2+logOR_SE2**2)
+def OR_z_test(df):
+    """Compute z-value for ORs between the whole 
+    population (true OR) and (matched) subset of population"""
+    logOR_subs, logORSE_subs = compute_logOR_SE(df[df.subset==1])
+    logOR_all, logORSE_all = compute_logOR_SE(df)
+    return np.abs(logOR_all-logOR_subs)/np.sqrt(logORSE_subs**2+logORSE_all**2)
+def z_test_two_sided(mu1, mu2, sig1, sig2):
+    return np.abs(mu1-mu2)/np.sqrt(sig1**2+sig2**2)
 
 def run_logistic_regression(df, outcome='exposed',random_state=0):
-    # Predicts probability of being exposed
+    """Predict probability of being exposed"""
     num_variables = helper.get_num_variables(df)
     variables_columns = ['x'+str(i) for i \
         in range(num_variables)]
