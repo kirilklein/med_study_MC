@@ -87,6 +87,7 @@ def get_positives_and_random_subset(df, n_subset, random_state=0):
     df_subs = pd.concat([dfd, df_rand], ignore_index=True)
     return df_subs
 
+
 def get_positives_and_random_subset(df, n_subset, random_state=0):
     """Selects all the sick and a random subset of size n_subset of the rest of the population"""
     dfd = df[df.disease==1]
