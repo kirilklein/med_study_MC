@@ -72,16 +72,6 @@ mt.plot_variables_kde(dfd, hue='disease')
 
 
 
-def simulate_exposure_disease():
-    beta = np.array([-2,1])
-    df = mt.simulate_exposure(beta, num_hidden_variables,
-         population_size, random_state=None)
-    gamma = mt.get_gamma(gamma0=-4.5, true_OR=true_OR, gamma_ls=[.01])
-    df = mt.compute_disease_proba(df, gamma)
-    ####continue here
-
-
-
 
 
 #%%

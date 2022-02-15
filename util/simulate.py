@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from numpy.random import default_rng
 from scipy.stats import norm
+
 ######################Simulate population##############
 def get_rand_uniform(num_variables, random_state=0):
     if type(random_state)==int:
@@ -63,7 +64,7 @@ def get_gamma(gamma0, true_OR, gamma_ls):
 
 
 def simulate_disease(df, gamma, random_state=0):
-    df = mt.compute_disease_proba(df, gamma)
+    df = compute_disease_proba(df, gamma)
     if type(random_state)==int:
         rng = np.random.RandomState(random_state+2)
     else:
