@@ -14,6 +14,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib import ticker
 import seaborn as sns
 from util.colors import Color_palette
+from util import helper
 
 
 def quickplot(x, kind='scatter', y=None, 
@@ -35,6 +36,30 @@ def quickplot(x, kind='scatter', y=None,
     ax.set_title(title, fontsize=22)
     fig. tight_layout()
 
+# Matching
+def plot_heatmap(ct):
+    denomenator = np.repeat(np.sum(ct, axis=1).reshape(-1,1), 2, axis=1)
+    fig, ax = plt.subplots(1,2)
+    sns.heatmap(ct, annot=True, fmt="d", ax=ax[0])
+    sns.heatmap(ct/denomenator, 
+        annot=True, fmt=".2f", ax=ax[1])
+    ax[0].set_ylabel('exposure')
+    ax[1].set_ylabel('exposure')
+    ax[0].set_xlabel('disease')
+    ax[1].set_xlabel('disease')
+    fig.tight_layout()
+
+def plot_variables_kde(df, hue='exposed'):
+    num_variables = helper.get_num_variables(df)
+    fig, ax = plt.subplots(1,num_variables)
+    if num_variables!=1:
+        ax = ax.flatten()
+        for i, a in enumerate(ax):
+            if i<num_variables:
+                sns.kdeplot(data=df, x='x'+str(i), hue=hue, ax=a,)
+    else:
+        sns.kdeplot(data=df, x='x0', hue=hue, ax=ax,)
+    fig.tight_layout()
 
 
 # In[Helper]

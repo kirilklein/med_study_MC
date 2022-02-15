@@ -78,7 +78,13 @@ mt.plot_variables_kde(dfd, hue='disease')
 
 
 
-
+def simulate_exposure_disease():
+    beta = np.array([-2,1])
+    df = mt.simulate_exposure(beta, num_hidden_variables,
+         population_size, random_state=None)
+    gamma = mt.get_gamma(gamma0=-4.5, true_OR=true_OR, gamma_ls=[.01])
+    df = mt.compute_disease_proba(df, gamma)
+    
 
 
 
@@ -103,8 +109,8 @@ for i in range(5):
     OR_nm, CI_nm, pval_nm = mt.compute_OR_CI_pval(dfs, print_=False, 
         start_string='No mt')
     logOR_subs, logORSE_subs = mt.compute_logOR_SE(dfs)
-    z_val_ls.append(z_test(logOR_all, logORSE_subs, logORSE_all, logORSE_subs))
-    OR_within_ls.append(check_OR(OR_all, CI_nm))
+    z_val_ls.append(mt.z_test(logOR_all, logORSE_subs, logORSE_all, logORSE_subs))
+    OR_within_ls.append(mt.check_OR(OR_all, CI_nm))
     OR_ls.append(OR_nm)
 print(sum(OR_within_ls))
 fig, ax = plt.subplots(1,2)
