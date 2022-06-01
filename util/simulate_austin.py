@@ -1,10 +1,11 @@
 import numpy as np
 import scipy.stats as ss
+import scipy.optimize as so
 
 
-def simulate_variables(setting, num_vars=10, num_patients=1000,
+def simulate_pats(setting, num_vars=10, num_patients=1000,
         correlation=0.25, p=0.5, cutoff=0):
-    """Simulating variables as described in 
+    """Simulating patient variables as described in 
     https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4285163/#b16."""
     if setting=='a':
         return ss.norm.rvs(size=(num_patients, num_vars))
@@ -22,10 +23,52 @@ def simulate_variables(setting, num_vars=10, num_patients=1000,
     if setting=='d':
         return ss.bernoulli.rvs(p=p, size=(num_patients,10))
     if setting=='e':
-        x_n = simulate_variables('b', num_vars)
+        x_n = simulate_pats('b', num_vars)
         return np.where(x_n<cutoff, 0, 1)
     if setting=='f':
-        x_n = simulate_variables('b', num_vars=2)
-        x_b = simulate_variables('e', num_vars=8)
+        x_n = simulate_pats('b', num_vars=2)
+        x_b = simulate_pats('e', num_vars=8)
         return np.concatenate((x_b, x_n), axis=1)
+
+
+def simulate_exposure(X, a0, 
+        al = np.log(1.25),
+        am = np.log(1.5),
+        ah = np.log(1.75),
+        avh = np.log(2)):
+    """Coefficients a_ are same as in austin 2014"""
+    exponent = a0 + al*X[:,0] + al*X[:,1]\
+        + am*X[:,3] + am*X[:,4]\
+            + ah*X[:,6]+ ah*X[:,7]\
+                + avh*X[:,9]
+    p = 1/(1+np.exp(-exponent))
+    z = ss.bernoulli.rvs(p=p)
+    return z
+def prevalence_diff(a0, prevalence, X):
+    """Compute difference between actual and desired exposure prevalence
+    a0: alpha0 
+    prevalence: desired prevalence
+    X: patient variables"""
+    z = simulate_exposure(X, a0)
+    return np.sum(z)/len(z)-prevalence
+
+def get_alpha0(X, prevalence, iter=100, a=-10, b=0):
+    """
+    x: patient variables
+    prevalence: desired prevalence
+    iter: number of iterations
+    a, b: start interval for bisection [a,b]
+    Exposure is simulated iter times and the corresponding alpha0 is computed.
+    For every simulated exposure and alpha0, the difference between true 
+    and desired prevalence is returned.
+    """
+    alpha_res_ls = []
+    diffs = []
+    f = lambda y: prevalence_diff(y, prevalence=prevalence, X=X)
+    for _ in range(iter):
+        alpha_res = so.bisect(f, a=a, b=b)
+        diffs.append(f(alpha_res))
+        alpha_res_ls.append(alpha_res)
+    return np.median(alpha_res_ls), diffs
+    
 
