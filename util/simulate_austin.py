@@ -72,3 +72,43 @@ def get_alpha0(X, prevalence, iter=100, a=-10, b=0):
     return np.median(alpha_res_ls), diffs
     
 
+def simulate_outcome(X, beta0_exp, beta_exp, exposures,  
+        al = np.log(1.25),
+        am = np.log(1.5),
+        ah = np.log(1.75),
+        avh = np.log(2)):
+    """Coefficients a_ are same as in austin 2014"""
+    exponent = beta0_exp + beta_exp*exposures + al*X[:,1] + al*X[:,2]\
+        + am*X[:,4] + am*X[:,5]\
+            + ah*X[:,7]+ ah*X[:,8]\
+                + avh*X[:,9]
+    p = 1/(1+np.exp(-exponent))
+    z = ss.bernoulli.rvs(p=p)
+    return z
+
+def incidence_diff(beta0_exp, X, incidence):
+    """Compute difference between actual and desired exposure prevalence
+    a0: alpha0 
+    prevalence: desired prevalence
+    X: patient variables"""
+    z = simulate_outcome(X, beta0_exp, 0, np.zeros(len(X)))
+    return np.sum(z)/len(z)-incidence
+
+def get_beta0_exp(X, incidence, iter=100, a=-10, b=0):
+    """
+    X: patient variables
+    incidence: desired incidence
+    iter: number of iterations
+    a, b: start interval for bisection [a,b]
+    Outcome is simulated iter times, assuming no patients are exposed,
+    For every simulated outcome the difference between true 
+    and desired incidence is returned.
+    """
+    beta0_exp_res_ls = []
+    diffs = []
+    f = lambda y: incidence_diff(y, incidence=incidence, X=X)
+    for _ in range(iter):
+        beta0_exp_res = so.bisect(f, a=a, b=b)
+        diffs.append(f(beta0_exp_res))
+        beta0_exp_res_ls.append(beta0_exp_res)
+    return np.median(beta0_exp_res_ls), diffs

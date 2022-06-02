@@ -5,3 +5,5 @@ alpha0_meds.pkl: alpha0 medians from obtain_alpha0.py,
 	the file contains a dictionary with keys a, b, c ... corresponding to the variable simulation settings
 	for every key, values are lists of alpha0 medians 
 	entries correspong to 0.01, 0.02, 0.04 and 0.08 prevalences
+beta0_exp_meds.pkl: For every setting a-f beta0_exp is determined using bisection
+				such that the incidence is 0.1
