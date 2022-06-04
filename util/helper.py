@@ -57,3 +57,4 @@ def produce_hist_values(x_all, N_bins, x_range = None, poisson_error = False,
         return x, y, sy, binwidth
     else:
         return x, y, binwidth
+

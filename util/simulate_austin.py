@@ -3,6 +3,13 @@ import scipy.stats as ss
 import scipy.optimize as so
 
 
+var_set_dic = {'a':'Independent Normal ',
+                'b':' Multivariate Normal',
+                'c':'Binary',
+                'd':'Binary/ Independent Normal 5:5',
+                'e':'Correlated Binary',
+                'f':'Binary/ Normal 8:2'}
+
 def simulate_pats(setting, num_vars=10, num_patients=1000,
         correlation=0.25, p=0.5, cutoff=0):
     """Simulating patient variables as described in 
@@ -112,3 +119,16 @@ def get_beta0_exp(X, incidence, iter=100, a=-10, b=0):
         diffs.append(f(beta0_exp_res))
         beta0_exp_res_ls.append(beta0_exp_res)
     return np.median(beta0_exp_res_ls), diffs
+
+def compute_rr(exposures, outcomes):
+    """Compute the odds ratio"""
+    n_exp = np.sum(exposures)
+    n_nexp = len(exposures) - n_exp
+    
+    n_exp_pos = np.sum(outcomes[exposures==1])
+    n_exposed_neg = len(n_exp) - n_exp_pos
+    
+    n_nexp_pos= np.sum(outcomes[exposures==0])
+    n_nexp_neg = len(n_nexp) - n_nexp_pos
+    # TODO: continue here
+    pass
