@@ -1,3 +1,8 @@
+"""Compute beta_exp as described in 
+Austin, Peter C. (2010).
+ A Data-Generation Process for Data with Specified Risk Differences 
+    or Numbers Needed to Treat. 
+    Communications in Statistics - Simulation and Computation, 39(3), 563–577."""
 import os
 from pathlib import Path
 from os.path import join
@@ -8,12 +13,7 @@ import proplot as pplt
 import string
 from util import simulate_austin
 import pickle as pkl
-
-
-
-num_pats = 1000
-incidence = 0.1
-bexp_med_ls = []
+import scipy.optimize as so
 
 
 with open(join(base_dir, 'data_and_params', 'alpha0_meds.pkl'), 'rb') as f:
@@ -22,27 +22,33 @@ with open(join(base_dir, 'data_and_params', 'alpha0_meds.pkl'), 'rb') as f:
 with open(join(base_dir, 'data_and_params', 'beta0_exp_meds.pkl'), 'rb') as f:
     beta0_exp_ls = pkl.load(f)
 
+def simulate_risk_difference(beta_exp, X, alpha0, beta0_exp, iters=10):
+    gammas = []
+    for k in range(iters):
+            exposures = simulate_austin.simulate_exposure(X, alpha0)
+            beta_exp = 1
+            p = simulate_austin.compute_outcome_prob(X, beta0_exp, 
+                beta_exp, exposures)
+            p0 = np.mean(p[exposures==0])
+            p1 = np.mean(p[exposures==1])
+            gammas.append(p1 - p0)  # Different than described in the paper
+    return np.mean(gammas)
 
-def compute_outcome_prob(X, beta0_exp, beta_exp, exposures,  
-        al = np.log(1.25),
-        am = np.log(1.5),
-        ah = np.log(1.75),
-        avh = np.log(2)):
-    exponent = beta0_exp + beta_exp*exposures + al*X[:,1] + al*X[:,2]\
-        + am*X[:,4] + am*X[:,5]\
-            + ah*X[:,7]+ ah*X[:,8]\
-                + avh*X[:,9]
-    p = 1/(1+np.exp(-exponent))
-    return p
-
+desired_gamma = 1
+iters=10
+num_pats = 1000
+bexp_med_ls = []
 
 fig, ax = pplt.subplots()
 for i in range(1):
     setting = string.ascii_lowercase[i]
     X = simulate_austin.simulate_pats(setting, num_patients=num_pats)
-    for beta0_exp, j in enumerate(range(len(beta0_exp_ls[:2]))):
-        exposures = simulate_austin.simulate_exposure(X, alpha0_dic[setting][j])
-        simulate_austin.compute_outcome_prob(X, beta0_exp,  )
-        print(exposures.shape)
+    for beta0_exp, j in enumerate(range(len(beta0_exp_ls[:1]))):
+        alpha0 = alpha0_dic[setting][j]
+        f = lambda y: simulate_risk_difference(y, X, alpha0, beta0_exp, iters) - desired_gamma
+        print(f(-3))
+        #bexp_res = so.bisect(f, a=-1, b=1)
+        #print(bexp_res)
+        
 
         

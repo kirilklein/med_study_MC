@@ -78,6 +78,17 @@ def get_alpha0(X, prevalence, iter=100, a=-10, b=0):
         alpha_res_ls.append(alpha_res)
     return np.median(alpha_res_ls), diffs
     
+def compute_outcome_prob(X, beta0_exp, beta_exp, exposures,  
+        al = np.log(1.25),
+        am = np.log(1.5),
+        ah = np.log(1.75),
+        avh = np.log(2)):
+    exponent = beta0_exp + beta_exp*exposures + al*X[:,1] + al*X[:,2]\
+        + am*X[:,4] + am*X[:,5]\
+            + ah*X[:,7]+ ah*X[:,8]\
+                + avh*X[:,9]
+    p = 1/(1+np.exp(-exponent))
+    return p
 
 def simulate_outcome(X, beta0_exp, beta_exp, exposures,  
         al = np.log(1.25),
@@ -85,11 +96,8 @@ def simulate_outcome(X, beta0_exp, beta_exp, exposures,
         ah = np.log(1.75),
         avh = np.log(2)):
     """Coefficients a_ are same as in austin 2014"""
-    exponent = beta0_exp + beta_exp*exposures + al*X[:,1] + al*X[:,2]\
-        + am*X[:,4] + am*X[:,5]\
-            + ah*X[:,7]+ ah*X[:,8]\
-                + avh*X[:,9]
-    p = 1/(1+np.exp(-exponent))
+    p = compute_outcome_prob(X, beta0_exp, beta_exp, exposures, 
+        al=al, am=am, ah=ah, avh=avh)
     z = ss.bernoulli.rvs(p=p)
     return z
 
