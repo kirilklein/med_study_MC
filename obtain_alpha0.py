@@ -35,7 +35,7 @@ for i in range(6):
         #diffs_ls.append(diffs)
     #axs[i].format(xlim=(0,0.11), xlocator=prevalences, xformatter='{:.2f}')
     axs[i].format(xlim=(0.005,0.09), xscale=('power', 1/2), xticks=prevalences)
-    axs[i].set_title(simulate_austin.var_set_dic[setting])
+    axs[i].set_title(simulate_austin.var_set_dic[setting], fontsize=8)
     alpha0_med_dic[setting] = a0_med_ls
 fig.format(xlabel='p', ylabel=r'$(p-p_{\mathrm{sim}})/p$') 
 fig.savefig(join(base_dir, 'figs', 'get_alpha_0_res_1000_pats_100_iter.png'),dpi=300)

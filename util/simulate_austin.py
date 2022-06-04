@@ -6,9 +6,9 @@ import scipy.optimize as so
 var_set_dic = {'a':'Independent Normal ',
                 'b':' Multivariate Normal',
                 'c':'Binary',
-                'd':'Binary/ Independent Normal 5:5',
+                'd':'Binary/Independent Normal 5:5',
                 'e':'Correlated Binary',
-                'f':'Binary/ Normal 8:2'}
+                'f':'Binary/Normal 8:2'}
 
 def simulate_pats(setting, num_vars=10, num_patients=1000,
         correlation=0.25, p=0.5, cutoff=0):
