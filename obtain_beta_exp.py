@@ -27,7 +27,6 @@ def simulate_risk_difference(beta_exp, X, alpha0, beta0_exp, iters=10):
     gammas = []
     for _ in range(iters):
             exposures = simulate_austin.simulate_exposure(X, alpha0)
-            beta_exp = 1
             p = simulate_austin.compute_outcome_prob(X, beta0_exp, 
                 beta_exp, exposures)
             p0 = np.mean(p[exposures==0])
@@ -35,9 +34,9 @@ def simulate_risk_difference(beta_exp, X, alpha0, beta0_exp, iters=10):
             gammas.append(p1 - p0)  # Different than described in the paper
     return np.mean(gammas)
 
-desired_gamma = 1
-iters=10
-num_pats = 1500
+desired_gamma = 0.02
+iters=100
+num_pats = 1000
 bexp_med_ls = []
 
 fig, ax = pplt.subplots()
@@ -46,13 +45,13 @@ for i in range(1):
     X = simulate_austin.simulate_pats(setting, num_patients=num_pats)
     for beta0_exp, j in enumerate(range(len(beta0_exp_ls[:1]))):
         alpha0 = alpha0_dic[setting][j]
-        f = lambda y: simulate_risk_difference(y, X, alpha0, beta0_exp, iters) - desired_gamma
-        res_test = []
-        for s in np.linspace(-10,10,100):
-            res_test.append(f(s))
-        #bexp_res = so.bisect(f, a=-1, b=1)
-        #print(bexp_res)
+        f = lambda y: simulate_risk_difference(y, X, alpha0, beta0_exp, iters) #- desired_gamma
+        #res_test = []
+        #for s in np.linspace(-10,10,100):
+        #    res_test.append(f(s))
+        bexp_res = so.bisect(f, a=-10, b=10)
+        print(bexp_res, f(bexp_res))
         
-plt.plot(res_test)
-plt.savefig(join(base_dir, 'figs','test.png'))
+#plt.plot(np.linspace(-10,10,100),res_test)
+#plt.savefig(join(base_dir, 'figs','test.png'))
         
