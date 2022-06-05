@@ -12,7 +12,10 @@ from util import simulate_austin
 import matplotlib.pyplot as plt
 
 
-with open(join(base_dir, 'data_and_params', 'alpha0_meds.pkl'), 'rb') as f:
+with open(join(base_dir, 'data_and_params', 'beta0_exp_meds.pkl'), 'rb') as f:
+    beta0_exp = pkl.load(f)
+
+with open(join(base_dir, 'data_and_params', 'alpha0_dic.pkl'), 'rb') as f:
     alpha0_med_dic = pkl.load(f)
 alpha0_df = pd.DataFrame(alpha0_med_dic).transpose()
 fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(9.5,2.5))

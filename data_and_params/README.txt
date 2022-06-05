@@ -1,9 +1,5 @@
-alpha0_meds.pkl: alpha0 medians from obtain_alpha0.py, 
-	1k patient variables are simulated first for every setting, 
-	for every set of patient variables, alpha was computed 100 times, 
-	since the process is random, even with the same alpha, different exposure prevalences are obtained,
-	the file contains a dictionary with keys a, b, c ... corresponding to the variable simulation settings
-	for every key, values are lists of alpha0 medians 
-	entries correspong to 0.01, 0.02, 0.04 and 0.08 prevalences
-beta0_exp_meds.pkl: For every setting a-f beta0_exp is determined using bisection
+alpha0_dic.pkl: alpha0, every dictionary entry corresponds to one variable simulation setting
+	the dictionary values are lists, every list entry corresponds to on prevalence
+	The simulated prevalence is first averaged over 1000 datasets, then bisection is performed
+beta0_exp_ls.pkl: For every setting a-f beta0_exp is determined as described in data_austin2010
 				such that the incidence is 0.1

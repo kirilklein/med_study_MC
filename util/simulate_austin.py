@@ -109,33 +109,33 @@ def simulate_outcome(X, beta0_exp, beta_exp, exposures,
     z = ss.bernoulli.rvs(p=p)
     return z
 
-def incidence_diff(beta0_exp, X, incidence):
+def incidence_diff(beta0_exp, incidence, setting, num_vars, num_pats, iters):
     """Compute difference between actual and desired exposure prevalence
     a0: alpha0 
     prevalence: desired prevalence
-    X: patient variables"""
-    z = simulate_outcome(X, beta0_exp, 0, np.zeros(len(X)))
-    return np.sum(z)/len(z)-incidence
-
-def get_beta0_exp(X, incidence, iter=100, a=-10, b=0):
     """
-    X: patient variables
-    incidence: desired incidence
-    iter: number of iterations
-    a, b: start interval for bisection [a,b]
-    Outcome is simulated iter times, assuming no patients are exposed,
-    For every simulated outcome the difference between true 
-    and desired incidence is returned.
-    """
-    beta0_exp_res_ls = []
     diffs = []
-    f = lambda y: incidence_diff(y, incidence=incidence, X=X)
-    for _ in range(iter):
-        beta0_exp_res = so.bisect(f, a=a, b=b)
-        diffs.append(f(beta0_exp_res))
-        beta0_exp_res_ls.append(beta0_exp_res)
-    return np.median(beta0_exp_res_ls), diffs
+    for _ in range(iters):
+        X = simulate_pats(setting, num_vars, num_pats)
+        z = simulate_outcome(X, beta0_exp, 0, np.zeros(len(X)))
+        diffs.append(np.sum(z)/len(z)-incidence)
+    return np.mean(diffs)
 
+def get_beta0_exp(setting, incidence, num_vars=10, num_pats=1000, 
+            iters=1000, a=-10, b=0):
+    """
+    incidence: desired incidence
+    iters: number of iterations
+    a, b: start interval for bisection [a,b]
+    Outcome is simulated iters times, assuming no patients are exposed,
+    """
+    f = lambda y: incidence_diff(y, incidence, setting, 
+                num_vars, num_pats, iters)
+    beta0_exp_res = so.bisect(f, a=a, b=b)
+    return beta0_exp_res
+
+
+#####################################################################
 def compute_rr(exposures, outcomes):
     """Compute the odds ratio"""
     n_exp = np.sum(exposures)
