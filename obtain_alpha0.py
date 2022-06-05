@@ -15,8 +15,9 @@ import string
 from util import simulate_austin
 import pickle as pkl
 
+
+num_iters = 1000
 prevalences = np.logspace(0, 3, 4, base=2)/100
-variable_setting_dic = {'a'}
 a0_med_ls_ls = []
 #fig, axs = plt.subplots()#
 fig, axs = pplt.subplots(ncols=3, nrows=2, refwidth=2,abc=True,)
