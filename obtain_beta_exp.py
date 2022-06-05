@@ -19,13 +19,20 @@ import matplotlib.pyplot as plt
 
 with open(join(base_dir, 'data_and_params', 'alpha0_meds.pkl'), 'rb') as f:
     alpha0_dic = pkl.load(f)
-
 with open(join(base_dir, 'data_and_params', 'beta0_exp_meds.pkl'), 'rb') as f:
     beta0_exp_ls = pkl.load(f)
 
-def simulate_risk_difference(beta_exp, X, alpha0, beta0_exp, iters=10):
+
+desired_gamma = 0.02
+iters=1000
+num_pats = 1000
+beta_exp_dic = {}
+
+def simulate_risk_difference(beta_exp, X, alpha0, beta0_exp, 
+                        num_vars, num_patients, iters=10):
     gammas = []
     for _ in range(iters):
+            X = simulate_austin.simulate_pats(setting, num_vars, num_patients)
             exposures = simulate_austin.simulate_exposure(X, alpha0)
             p = simulate_austin.compute_outcome_prob(X, beta0_exp, 
                 beta_exp, exposures)
@@ -37,20 +44,16 @@ def simulate_risk_difference(beta_exp, X, alpha0, beta0_exp, iters=10):
             gammas.append(p1 - p0)  # Different than described in the paper (p0-p1)
     return np.mean(gammas)
 
-desired_gamma = 0.02
-iters=1000
-num_pats = 1000
-beta_exp_dic = {}
-
+def get_beta_exp(alpha0, beta0_exp, setting, iters):
+    f = lambda y: simulate_risk_difference(y, setting, alpha0, beta0_exp, iters) - desired_gamma
+    bexp_res = so.bisect(f, a=-2, b=0)
+    return bexp_res
 
 def get_beta_exp_spec(input):
     """Helper function for multiprocessing"""
-    setting, prevalence = input
-    a0 = simulate_austin.get_alpha0(setting, prevalence, 
-                num_vars=num_vars, num_pats=num_pats, 
-                iters=iters, a=a, b=b)
+    alpha0, beta0_exp, setting = input
+    a0 = simulate_austin.get_beta_exp(alpha0, beta0_exp, setting, iters)
     return a0
-def get_beta_exp(alpha0, beta0_exp, iters, ):
 
 if __name__ == '__main__':
     for i in range(6):
@@ -58,9 +61,8 @@ if __name__ == '__main__':
         beta0_exp = beta0_exp_ls[i]
         alpha0_ls = alpha0_dic[i]
         setting = string.ascii_lowercase[i]
-        X = simulate_austin.simulate_pats(setting, num_patients=num_pats)
         for alpha0 in alpha0_ls:
-            f = lambda y: simulate_risk_difference(y, X, alpha0, beta0_exp, iters) - desired_gamma
+            f = lambda y: simulate_risk_difference(y, setting, alpha0, beta0_exp, iters) - desired_gamma
             bexp_res = so.bisect(f, a=-2, b=0)
             bexp_ls.append(bexp_res)
             print(bexp_res, f(bexp_res))
