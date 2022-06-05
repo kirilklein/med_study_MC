@@ -3,8 +3,8 @@ import scipy.stats as ss
 import scipy.optimize as so
 
 
-var_set_dic = {'a':'Independent Normal ',
-                'b':' Multivariate Normal',
+var_set_dic = {'a':'Independent Normal',
+                'b':'Multivariate Normal',
                 'c':'Binary',
                 'd':'Binary/Independent Normal 5:5',
                 'e':'Correlated Binary',
@@ -51,33 +51,41 @@ def simulate_exposure(X, a0,
     p = 1/(1+np.exp(-exponent))
     z = ss.bernoulli.rvs(p=p)
     return z
-def prevalence_diff(a0, prevalence, X):
-    """Compute difference between actual and desired exposure prevalence
+
+#############################################################
+def prevalence_diff(a0, setting, num_vars, num_pats, prevalence, iters):
+    """Compute difference between actual and desired exposure prevalence,
+    averaged over 1000 iterations
     a0: alpha0 
     prevalence: desired prevalence
-    X: patient variables"""
-    z = simulate_exposure(X, a0)
-    return np.sum(z)/len(z)-prevalence
-
-def get_alpha0(X, prevalence, iter=100, a=-10, b=0):
     """
-    x: patient variables
+    diffs = []
+    for _ in range(iters):
+        X = simulate_pats(setting, num_vars, num_pats)
+        z = simulate_exposure(X, a0)
+        diffs.append(np.sum(z)/len(z)-prevalence)
+    return np.mean(diffs)
+
+def get_alpha0(setting, prevalence, num_vars=10, num_pats=1000, 
+            iters=1000, a=-10, b=0):
+    """
+    setting: a-f
     prevalence: desired prevalence
-    iter: number of iterations
+    iters: number of iterations
     a, b: start interval for bisection [a,b]
+    num_vars: number variables to simulate
+    num_pats: number of patients
     Exposure is simulated iter times and the corresponding alpha0 is computed.
     For every simulated exposure and alpha0, the difference between true 
     and desired prevalence is returned.
     """
-    alpha_res_ls = []
-    diffs = []
-    f = lambda y: prevalence_diff(y, prevalence=prevalence, X=X)
-    for _ in range(iter):
-        alpha_res = so.bisect(f, a=a, b=b)
-        diffs.append(f(alpha_res))
-        alpha_res_ls.append(alpha_res)
-    return np.median(alpha_res_ls), diffs
-    
+    f = lambda y: prevalence_diff(y, setting, num_vars, num_pats,
+                prevalence, iters)
+    alpha0_res = so.bisect(f, a=a, b=b)
+    return alpha0_res
+####################################################
+
+
 def compute_outcome_prob(X, beta0_exp, beta_exp, exposures,  
         al = np.log(1.25),
         am = np.log(1.5),

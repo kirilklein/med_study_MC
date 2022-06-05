@@ -1,44 +1,57 @@
-import os
 
+"""Compute alpha0 similarly tp determination of beta as described in 
+Austin, Peter C. (2010).
+ A Data-Generation Process for Data with Specified Risk Differences 
+    or Numbers Needed to Treat. 
+    Communications in Statistics - Simulation and Computation, 39(3), 563–577.
+Simulating 1000 datasets with 1000 patients each to get estimate of prevalence.
+This is then used for alpha0 bisection.
+    """
+import os
 from pathlib import Path
-from os.path import join
 file_path = os.path.realpath(__file__)
 base_dir = Path(file_path).parent
-# if base_dir not in sys.path:
-    # sys.path.append(base_dir)
-# if Path(file_path).parent not in sys.path:
-    # sys.path.append(Path(file_path).parent)
-# from . import util.sim import simulate_austin
 import numpy as np
-import proplot as pplt
-import string
+import string, itertools
 from util import simulate_austin
 import pickle as pkl
+from multiprocessing import Pool
+
+num_vars = 10
+num_pats = 1000
+iters = 1000
+a = -9
+b = -1
 
 
-num_iters = 1000
+def get_alpha0_spec(input):
+    """Helper function for multiprocessing"""
+    setting, prevalence = input
+    a0 = simulate_austin.get_alpha0(setting, prevalence, 
+                num_vars=num_vars, num_pats=num_pats, 
+                iters=iters, a=a, b=b)
+    return a0
+
 prevalences = np.logspace(0, 3, 4, base=2)/100
-a0_med_ls_ls = []
-#fig, axs = plt.subplots()#
-fig, axs = pplt.subplots(ncols=3, nrows=2, refwidth=2,abc=True,)
-#axs = axs.flatten()
-alpha0_med_dic = {}
-for i in range(6):
-    setting = string.ascii_lowercase[i]
-    X = simulate_austin.simulate_pats(setting, num_patients=1000)
-    a0_med_ls = []
-    #diffs_ls = []
-    for j, prevalence in enumerate(prevalences):
-        a0_med, diffs = simulate_austin.get_alpha0(X, prevalence=prevalence, iter=100)
-        a0_med_ls.append(a0_med)
-        axs[i].boxplot(y=np.divide(diffs, prevalence), positions=prevalence, widths=.004*(1+j))
-        
-        #diffs_ls.append(diffs)
-    #axs[i].format(xlim=(0,0.11), xlocator=prevalences, xformatter='{:.2f}')
-    axs[i].format(xlim=(0.005,0.09), xscale=('power', 1/2), xticks=prevalences)
-    axs[i].set_title(simulate_austin.var_set_dic[setting], fontsize=8)
-    alpha0_med_dic[setting] = a0_med_ls
-fig.format(xlabel='p', ylabel=r'$(p-p_{\mathrm{sim}})/p$') 
-fig.savefig(join(base_dir, 'figs', 'get_alpha_0_res_1000_pats_100_iter.png'),dpi=300)
-with open(join(base_dir, 'data_and_params', 'alpha0_meds.pkl'), 'wb') as f:
-    pkl.dump(alpha0_med_dic, f)
+settings = [string.ascii_lowercase[i] for i in range(6)]
+inputs = list(itertools.product(settings, prevalences)) 
+a0_dic = {}
+
+if __name__ == '__main__':    
+    with Pool() as p:
+        a0_ls_all = p.map(get_alpha0_spec, inputs)
+    for i, setting in enumerate(settings):
+        len_prevalence = len(prevalences)
+        a0_dic[setting] =  a0_ls_all[i*len_prevalence:(i+1)*len_prevalence]
+    with open(os.path.join(base_dir, 'data_and_params', 'alpha0_dic.pkl'), 'wb') as f:
+        pkl.dump(a0_dic, f)       
+           
+           
+         #axs[i].boxplot(y=np.divide(diffs, prevalence), positions=prevalence, widths=.004*(1+j))
+            #diffs_ls.append(diffs)
+        #axs[i].format(xlim=(0,0.11), xlocator=prevalences, xformatter='{:.2f}')
+        #axs[i].format(xlim=(0.005,0.09), xscale=('power', 1/2), xticks=prevalences)
+        #axs[i].set_title(simulate_austin.var_set_dic[setting], fontsize=8)
+    # fig.format(xlabel='p', ylabel=r'$(p-p_{\mathrm{sim}})/p$') 
+    # fig.savefig(join(base_dir, 'figs', 'get_alpha_0_res_1000_pats_100_iter.png'),dpi=300)
+    
