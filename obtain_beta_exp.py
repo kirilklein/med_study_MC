@@ -35,8 +35,8 @@ def construct_input():
     return input
 
 desired_gamma = 0.02
-iters=100
-num_pats = 500
+iters=1000
+num_pats = 1000
 num_vars=10
 settings = [string.ascii_lowercase[i] for i in range(6)]
 beta_exp_dic = {}
@@ -46,8 +46,6 @@ if __name__ == '__main__':
     for i, setting in enumerate(settings):
         len_prevalence = len(alpha0_dic['a'])
         beta_exp_dic[setting] =  beta_exp_ls_all[i*len_prevalence:(i+1)*len_prevalence]
-    print(simulate_austin.simulate_risk_difference(beta_exp_dic['a'][0], 'a', alpha0_dic['a'][0],
-        beta0_exp_ls[0], num_vars, num_pats, iters))
     with open(join(base_dir, 'data_and_params', 'beta_exp_dic.pkl'), 'wb') as f:
         pkl.dump(beta_exp_dic, f)     
         
