@@ -151,7 +151,7 @@ def simulate_risk_difference(beta_exp, setting, alpha0, beta0_exp,
     return np.mean(gammas)
 
 def get_beta_exp(alpha0, beta0_exp, setting, desired_gamma, num_vars=10, 
-        num_patients=1000, iters=1000,  a=-2, b=0):
+        num_patients=1000, iters=1000,  a=-3, b=2):
     f = lambda y: simulate_risk_difference(y, setting, alpha0, beta0_exp,
                      num_vars, num_patients, iters) - desired_gamma
     bexp_res = so.bisect(f, a=a, b=b)
