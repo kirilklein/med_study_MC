@@ -8,65 +8,46 @@ from pathlib import Path
 from os.path import join
 file_path = os.path.realpath(__file__)
 base_dir = Path(file_path).parent
-import numpy as np
-import proplot as pplt
 import string
 from util import simulate_austin
 import pickle as pkl
-import scipy.optimize as so
-import matplotlib.pyplot as plt
+from multiprocessing import Pool
 
 
-with open(join(base_dir, 'data_and_params', 'alpha0_meds.pkl'), 'rb') as f:
+with open(join(base_dir, 'data_and_params', 'alpha0_dic.pkl'), 'rb') as f:
     alpha0_dic = pkl.load(f)
-with open(join(base_dir, 'data_and_params', 'beta0_exp_meds.pkl'), 'rb') as f:
+with open(join(base_dir, 'data_and_params', 'beta0_exp_ls.pkl'), 'rb') as f:
     beta0_exp_ls = pkl.load(f)
-
-
-desired_gamma = 0.02
-iters=1000
-num_pats = 1000
-beta_exp_dic = {}
-
-def simulate_risk_difference(beta_exp, X, alpha0, beta0_exp, 
-                        num_vars, num_patients, iters=10):
-    gammas = []
-    for _ in range(iters):
-            X = simulate_austin.simulate_pats(setting, num_vars, num_patients)
-            exposures = simulate_austin.simulate_exposure(X, alpha0)
-            p = simulate_austin.compute_outcome_prob(X, beta0_exp, 
-                beta_exp, exposures)
-            p0 = np.mean(p[exposures==0])
-            if (exposures==1).sum()==0:
-                p1 = 0
-            else:
-                p1 = np.mean(p[exposures==1])
-            gammas.append(p1 - p0)  # Different than described in the paper (p0-p1)
-    return np.mean(gammas)
-
-def get_beta_exp(alpha0, beta0_exp, setting, iters):
-    f = lambda y: simulate_risk_difference(y, setting, alpha0, beta0_exp, iters) - desired_gamma
-    bexp_res = so.bisect(f, a=-2, b=0)
-    return bexp_res
 
 def get_beta_exp_spec(input):
     """Helper function for multiprocessing"""
     alpha0, beta0_exp, setting = input
-    a0 = simulate_austin.get_beta_exp(alpha0, beta0_exp, setting, iters)
-    return a0
+    beta_exp = simulate_austin.get_beta_exp(alpha0, beta0_exp, 
+            setting, desired_gamma, num_vars, num_pats, iters)
+    return beta_exp
 
-if __name__ == '__main__':
-    for i in range(6):
-        bexp_ls = []
+def construct_input():
+    input = []
+    for i, (k, value) in enumerate(alpha0_dic.items()):
         beta0_exp = beta0_exp_ls[i]
-        alpha0_ls = alpha0_dic[i]
-        setting = string.ascii_lowercase[i]
-        for alpha0 in alpha0_ls:
-            f = lambda y: simulate_risk_difference(y, setting, alpha0, beta0_exp, iters) - desired_gamma
-            bexp_res = so.bisect(f, a=-2, b=0)
-            bexp_ls.append(bexp_res)
-            print(bexp_res, f(bexp_res))
-        beta_exp_dic[setting] = bexp_ls
+        for v in value:
+            input.append((v, beta0_exp, k))
+    return input
+
+desired_gamma = 0.02
+iters=10
+num_pats = 100
+num_vars=10
+settings = [string.ascii_lowercase[i] for i in range(6)]
+beta_exp_dic = {}
+if __name__ == '__main__':
+    with Pool() as p:
+        beta_exp_ls_all = p.map(get_beta_exp_spec, construct_input())
+    for i, setting in enumerate(settings):
+        len_prevalence = len(alpha0_dic['a'])
+        beta_exp_dic[setting] =  beta_exp_ls_all[i*len_prevalence:(i+1)*len_prevalence]
+    print(simulate_austin.simulate_risk_difference(beta_exp_dic['a'], 'a', alpha0=alpha0_dic['a'][0]),
+     num_vars, num_pats, iters)
     with open(join(base_dir, 'data_and_params', 'beta_exp_dic.pkl'), 'wb') as f:
         pkl.dump(beta_exp_dic, f)     
         

@@ -133,8 +133,29 @@ def get_beta0_exp(setting, incidence, num_vars=10, num_pats=1000,
                 num_vars, num_pats, iters)
     beta0_exp_res = so.bisect(f, a=a, b=b)
     return beta0_exp_res
+#####################################################################
+def simulate_risk_difference(beta_exp, setting, alpha0, beta0_exp, 
+                        num_vars=10, num_patients=1000, iters=1000):
+    gammas = []
+    for _ in range(iters):
+            X = simulate_pats(setting, num_vars, num_patients)
+            exposures = simulate_exposure(X, alpha0)
+            p = compute_outcome_prob(X, beta0_exp, 
+                beta_exp, exposures)
+            p0 = np.mean(p[exposures==0])
+            if (exposures==1).sum()==0:
+                p1 = 0
+            else:
+                p1 = np.mean(p[exposures==1])
+            gammas.append(p1 - p0)  # Different than described in the paper (p0-p1)
+    return np.mean(gammas)
 
-
+def get_beta_exp(alpha0, beta0_exp, setting, desired_gamma, num_vars=10, 
+        num_patients=1000, iters=1000,  a=-2, b=0):
+    f = lambda y: simulate_risk_difference(y, setting, alpha0, beta0_exp,
+                     num_vars, num_patients, iters) - desired_gamma
+    bexp_res = so.bisect(f, a=a, b=b)
+    return bexp_res
 #####################################################################
 def compute_rr(exposures, outcomes):
     """Compute the odds ratio"""
