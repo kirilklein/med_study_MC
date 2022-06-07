@@ -52,6 +52,15 @@ def simulate_exposure(X, a0,
     z = ss.bernoulli.rvs(p=p)
     return z
 
+def simulate_pats_exp_out(setting, alpha0, beta0_exp, beta_exp,
+             num_vars=10, num_pats=1000, correlation=0.25, p=0.5, cutoff=0):
+    """Simulate patients, exposures and outcomes"""
+    X = simulate_pats(setting, num_vars=num_vars, 
+                num_patients=num_pats, correlation=correlation, p=p, cutoff=cutoff)
+    exposures =  simulate_exposure(X, alpha0)
+    outcomes = simulate_outcome(X, beta0_exp, beta_exp, exposures)
+    return X, exposures, outcomes
+
 #############################################################
 def prevalence_diff(a0, setting, num_vars, num_pats, prevalence, iters):
     """Compute difference between actual and desired exposure prevalence,
@@ -157,15 +166,4 @@ def get_beta_exp(alpha0, beta0_exp, setting, desired_gamma, num_vars=10,
     bexp_res = so.bisect(f, a=a, b=b)
     return bexp_res
 #####################################################################
-def compute_rr(exposures, outcomes):
-    """Compute the odds ratio"""
-    n_exp = np.sum(exposures)
-    n_nexp = len(exposures) - n_exp
-    
-    n_exp_pos = np.sum(outcomes[exposures==1])
-    n_exposed_neg = len(n_exp) - n_exp_pos
-    
-    n_nexp_pos= np.sum(outcomes[exposures==0])
-    n_nexp_neg = len(n_nexp) - n_nexp_pos
-    # TODO: continue here
-    pass
+
